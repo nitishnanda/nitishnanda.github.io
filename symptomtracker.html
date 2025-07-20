@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Symptom Checker - Health Assistant</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+</head>
+<body>
+  <nav id="navbar"></nav>
+
+  <main class="container">
+    <h1>Symptom Tracker</h1>
+    <form id="symptomForm">
+      <label>Symptom:</label>
+      <select id="symptomSelect" required></select>
+      <label>Severity (0-5):</label>
+      <input type="number" id="severity" min="0" max="5" required />
+      <label>Date:</label>
+      <input type="date" id="symptomDate" required />
+      <button type="submit">Log Symptom</button>
+    </form>
+    <ul id="entriesList"></ul>
+    <canvas id="symptomChart"></canvas>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <script src="common.js"></script>
+  <script>
+    renderNavbar();
+
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) {
+      window.location.href = 'login.html';
+    }
+
+    const symptomSelect = new Choices('#symptomSelect', { searchEnabled: false });
+    const symptomOptions = ['Headache', 'Fever', 'Cough', 'Nausea', 'Fatigue', 'Dizziness'];
+    symptomOptions.forEach(s => symptomSelect.setChoices([{ value: s, label: s }], 'value', 'label', false));
+
+    let entries = user.medicalHistory || [];
+    const entriesList = document.getElementById('entriesList');
+    const ctx = document.getElementById('symptomChart').getContext('2d');
+    let chart;
+
+    function renderEntries() {
+      entriesList.innerHTML = '';
+      entries.forEach(e => {
+        const li = document.createElement('li');
+        li.textContent = `${e.date} — ${e.symptom} (Severity: ${e.severity})`;
+        entriesList.appendChild(li);
+      });
+    }
+
+    function renderChart() {
+      const symptoms = {};
+      entries.forEach(({ symptom, severity }) => {
+        symptoms[symptom] = symptoms[symptom] || [];
+        symptoms[symptom].push(severity);
+      });
+
+      const labels = Object.keys(symptoms);
+      const data = labels.map(s => symptoms[s].reduce((a,b) => a+b)/symptoms[s].length);
+
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{ label: 'Avg Severity', data, backgroundColor: '#007bff' }]
+        },
+        options: { scales: { y: { min: 0, max: 5 } } }
+      });
+    }
+
+    function saveEntries() {
+      user.medicalHistory = entries;
+      let users = JSON.parse(localStorage.getItem('users'));
+      users = users.map(u => u.email === user.email ? user : u);
+      localStorage.setItem('users', JSON.stringify(users));
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    }
+
+    document.getElementById('symptomForm').addEventListener('submit', e => {
+      e.preventDefault();
+
+      const symptom = document.getElementById('symptomSelect').value;
+      const severity = parseInt(document.getElementById('severity').value);
+      const date = document.getElementById('symptomDate').value;
+
+      if (!symptom || isNaN(severity) || !date) return;
+
+      const entry = { symptom, severity, date };
+      entries.push(entry);
+      saveEntries();
+      renderEntries();
+      renderChart();
+
+      e.target.reset();
+    });
+
+    renderEntries();
+    renderChart();
+  </script>
+</body>
+</html>

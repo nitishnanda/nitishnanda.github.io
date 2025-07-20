@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Symptom Calendar - Health Assistant</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+</head>
+<body>
+  <nav id="navbar"></nav>
+
+  <main class="container">
+    <h1>Symptom Calendar</h1>
+    <div id="calendarView"></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <script src="common.js"></script>
+  <script>
+    renderNavbar();
+
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) {
+      window.location.href = 'login.html';
+    }
+
+    const calendarEl = document.getElementById('calendarView');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      height: 'auto',
+      events: user.medicalHistory.map(e => ({
+        title: e.symptom,
+        start: e.date
+      }))
+    });
+    calendar.render();
+  </script>
+</body>
+</html>

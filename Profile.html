@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile - Health Assistant</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav id="navbar"></nav>
+
+  <main class="container">
+    <h1>Your Profile</h1>
+    <section id="profileDetails"></section>
+    <section id="medicalHistorySection">
+      <h2>Medical History</h2>
+      <ul id="medicalHistoryList"></ul>
+    </section>
+  </main>
+
+  <script src="common.js"></script>
+  <script>
+    renderNavbar();
+
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user) {
+      window.location.href = 'login.html';
+    }
+
+    const profileDetails = document.getElementById('profileDetails');
+    profileDetails.innerHTML = `
+      <p><strong>Full Name:</strong> ${user.fullName}</p>
+      <p><strong>Email:</strong> ${user.email}</p>
+      <p><strong>Address:</strong> ${user.address}</p>
+      <p><strong>Postcode:</strong> ${user.postcode}</p>
+      <p><strong>Date of Birth:</strong> ${user.dob}</p>
+    `;
+
+    const medicalHistoryList = document.getElementById('medicalHistoryList');
+    if (user.medicalHistory && user.medicalHistory.length > 0) {
+      user.medicalHistory.forEach(entry => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.date} — ${entry.symptom} (Severity: ${entry.severity})`;
+        medicalHistoryList.appendChild(li);
+      });
+    } else {
+      medicalHistoryList.textContent = 'No medical history yet.';
+    }
+  </script>
+</body>
+</html>
