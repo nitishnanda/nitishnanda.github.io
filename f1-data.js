@@ -170,8 +170,8 @@
   // talent tiers: share of new careers, and OVR advantage over the "on-path" level by age band
   // bands: 7-11, 12-13, 14-15, 16-18, 19-22, 23+
   const TIERS = [
-    { id: 'prospect', n: 'Prospect', p: 0.51, col: '#8b8fb0', adv: [2.5, 2.5, 2.5, -3.5, -6.5, -7], blurb: 'Below-average F1 ceiling. Podiums in karting, then a midfield grind.' },
-    { id: 'talented', n: 'Talented', p: 0.30, col: '#4da3ff', adv: [4, 4.5, 4.5, 0.5, -0.5, 0.5], blurb: 'A solid F1 driver. Results depend on the car.' },
+    { id: 'prospect', n: 'Prospect', p: 0.51, col: '#8b8fb0', adv: [2.5, 2.5, 2.5, -3.5, -7.5, -7], blurb: 'Below-average F1 ceiling. Podiums in karting, then a midfield grind.' },
+    { id: 'talented', n: 'Talented', p: 0.30, col: '#4da3ff', adv: [4, 4.5, 4.5, 0, -3, 0.5], blurb: 'A solid F1 driver. Results depend on the car.' },
     { id: 'late', n: 'Late bloomer', p: 0.09, col: '#ff8a5c', adv: [-3, -1, 8, 5, 2.5, 2], blurb: 'Quiet early on, then dominant in the last karting years and the junior formulas.' },
     { id: 'wonder', n: 'Wonderkid', p: 0.08, col: '#ffd23f', adv: [6.5, 7, 7.5, 5, 4.5, 4.5], blurb: 'Wins early, wins often. A future title contender.' },
     { id: 'gen', n: 'Generational', p: 0.02, col: '#ff6fae', adv: [10, 11, 11, 9, 9, 9], blurb: 'Once in a generation. Dominates everything.' },

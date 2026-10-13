@@ -331,6 +331,7 @@
 
   /* ---------- season end ---------- */
   const REP_W = [1.4, 1.25, 1.25, 1.3, 1.4];
+  const kartRepW = age => age >= 14 ? 2.2 : 1.4;
   function finishSeason(G, partial) {
     const S = G.S, C = CATS[S.cat], P = player(G), tbl = standings(G);
     const pos = tbl.indexOf(P) + 1, N = tbl.length, q = N > 1 ? 1 - (pos - 1) / (N - 1) : 1;
@@ -344,7 +345,7 @@
     const anyTitle = champ || (!partial && C.kartWC && (S.euro || S.wcWin));
     let earn = 0;
     if (!C.pay) earn = Math.round(salOf(G, S.cat, G.team) * (0.9 + q * 0.25) + P.w * salOf(G, S.cat, G.team) * 0.02);
-    if (!partial) { const dRep = REP_W[C.tier] * (q * 10 - 3.5) + (anyTitle ? 6 : 0) + Math.min(P.w, 10) * 0.15; G.rep = clamp(G.rep + dRep, 5, 100); }
+    if (!partial) { const dRep = (C.tier === 0 ? kartRepW(G.age) : REP_W[C.tier]) * (q * 10 - 3.5) + (anyTitle ? 6 : 0) + Math.min(P.w, 10) * 0.15; G.rep = clamp(G.rep + dRep, 5, 100); }
     const h = { season: G.season, year: G.year, age: G.age, cat: S.cat, catName: C.name, short: C.short, team: G.team, races: P.races, wins: P.w, podiums: P.p, poles: P.pole, pts: P.pts, pos, N, ovr, trophies: tro, earn, champ: anyTitle, cost: G.deal.cost, partial: !!partial };
     G.history.push(h);
     const T = G.tot; T.races += P.races; T.wins += P.w; T.podiums += P.p; T.poles += P.pole; T.earn += earn; T.peak = Math.max(T.peak, ovr);
@@ -419,12 +420,12 @@
     if (!teams.length) { const cheap = C.teams.map(t => t[0]).filter(x => !(x === excludeTeam && catId === G.cat)).sort((a, b) => pf(G, catId, a) - pf(G, catId, b)); teams = [cheap[0]]; }
     return teams.map(nm => { const o = makeOffer(G, 'move', catId, nm); if (!affordable(G, catId, nm)) { o.cost = Math.round(o.cost * 0.6); o.scholarship = true; } return o; });
   }
-  const f4Thr = age => age <= 16 ? 54 : age === 17 ? 47 : 38;
+  const f4Thr = age => age <= 16 ? 60 : age === 17 ? 54 : 48;
   const bucket = pos => pos <= 4 ? 0 : pos <= 7 ? 1 : pos <= 10 ? 2 : pos <= 15 ? 3 : 4;
   function promoChance(G, fromCat, toCat, pos, mult) {
     let p = PROMO_P[bucket(pos)][G.tier];
-    if (toCat === 'f1' && fromCat === 'f2' && bucket(pos) > 0) p *= 0.5;
-    if (TIER3_SIDE.includes(fromCat)) p *= 0.08;
+    if (toCat === 'f1' && fromCat === 'f2' && bucket(pos) > 0) p *= 0.3;
+    if (TIER3_SIDE.includes(fromCat)) p *= pos <= 3 ? 0.03 : 0;
     return clamp(p * (mult || 1), 0, 1);
   }
 
@@ -450,7 +451,7 @@
       let promoted = false, promoCat = null;
       if (tgt) {
         promoCat = tgt[0];
-        if (TIER3_SIDE.includes(cat) && !(G.age <= 32 && G.rep >= 70 && G.history.some(h => h.cat === 'f2' || h.cat === 'f3'))) { /* no F1 route */ }
+        if (TIER3_SIDE.includes(cat) && !(G.age <= 29 && G.rep >= 70 && G.history.some(h => h.cat === 'f2' || h.cat === 'f3'))) { /* no F1 route */ }
         else {
           const p = promoChance(G, cat, promoCat, pos);
           promoted = rnd() < p;
