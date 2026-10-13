@@ -105,6 +105,7 @@
 
   /* ---------- helpers ---------- */
   const teamDef = (cat, name) => CATS[cat].teams.find(t => t[0] === name);
+  const seats = (cat, name) => teamDef(cat, name)[3] || CATS[cat].dpt;
   const pf = (G, cat, name) => {
     const C = CATS[cat];
     if (C.dyn) return clamp((G.tr[cat][name] - (C.lvl - 10)) / 20, 0, 1);
@@ -131,15 +132,15 @@
     return G.gen[key] || (G.gen[key] = freshName(G, cat));
   }
   function churnSeats(G, cat) {
-    if (CATS[cat].dyn) return; // F1 etc handled elsewhere / keep real names
+    if (cat === 'f1') return; // F1 uses the live driver pool
     const since = G.year - (G.churn[cat] === undefined ? START_YEAR : G.churn[cat]);
     G.churn[cat] = G.year; if (since <= 0) return;
-    const p = 1 - Math.pow(1 - ({ f4: 0.6, f3: 0.5, f2: 0.45 }[cat] || 0.35), since);
-    CATS[cat].teams.forEach(t => { for (let i = 0; i < CATS[cat].dpt; i++) if (rnd() < p) G.names[cat + '|' + t[0] + '|' + i] = freshName(G, cat); });
+    const p = 1 - Math.pow(1 - ({ f4: 0.6, f3: 0.5, f2: 0.45 }[cat] || (CATS[cat].dyn ? 0.12 : 0.35)), since);
+    CATS[cat].teams.forEach(t => { for (let i = 0; i < seats(cat, t[0]); i++) if (rnd() < p) G.names[cat + '|' + t[0] + '|' + i] = freshName(G, cat); });
   }
   function roster(G, cat, team) {
     if (cat === 'f1') return G.f1.teams[team].map(d => d.player ? G.name : d.name);
-    return Array.from({ length: CATS[cat].dpt }, (_, i) => seatName(G, cat, team, i));
+    return Array.from({ length: seats(cat, team) }, (_, i) => seatName(G, cat, team, i));
   }
 
   /* ---------- F1 driver pool (retirements, rookies, free agents) ---------- */
@@ -203,7 +204,7 @@
         return;
       }
       roster(G, C.id, name).forEach((nm, i) => {
-        const isP = name === G.team && i === C.dpt - 1;
+        const isP = name === G.team && i === seats(C.id, name) - 1;
         drivers.push({ id: drivers.length, name: isP ? G.name : nm, team: name, car, skill: C.lvl + 0.4 * (car - C.lvl) + gauss() * 3.5, isPlayer: isP, pts: 0, w: 0, p: 0, pole: 0, races: 0, dnf: 0 });
       });
     });

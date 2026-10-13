@@ -119,26 +119,73 @@
       teams: [['AF Corse', 4, ''], ['Team WRT', 3.5, ''], ['Akkodis ASP Team', 2, ''], ['Rowe Racing', 1, ''], ['Winward Racing', 0, ''], ['Emil Frey Racing', -1, ''], ['Tresor Orange1', -2, ''], ['Comtoyou Racing', -3, ''], ['Boutsen VDS', -4, '']] },
     sf: { id: 'sf', name: 'Super Formula', short: 'Super Formula', tier: 3, lvl: 77, rounds: 9, rpr: 2, dpt: 2, pay: false, sal: [140, 480], titleName: 'Super Formula Champion',
       rf: [{ n: 'R1', pts: PF1, grid: 'q' }, { n: 'R2', pts: PF1, grid: 'rev6' }], names: ['Motegi', 'Fuji', 'Suzuka', 'Autopolis', 'Sugo', 'Okayama', 'Fuji II', 'Motegi II', 'Suzuka II'],
-      teams: [['TOM\'S', 4, ''], ['Team Mugen', 3.5, ''], ['ITOCHU ENEOS Team Impul', 2.5, ''], ['Docomo Team Dandelion Racing', 1.5, ''], ['TGM Grand Prix', 0.5, ''], ['Kondo Racing', -0.5, ''], ['Nakajima Racing', -1.5, ''], ['Team Goh', -2.5, ''], ['KCMG', -3.5, ''], ['Cerumo INGING', -4.5, '']] },
+      teams: [
+        ['Team Mugen', 4, 'Ayumu Iwasa|Tomoki Nojiri'],
+        ['Vantelin Team TOM\'S', 3.5, 'Sho Tsuboi|Sacha Fenestraz'],
+        ['Docomo Team Dandelion Racing', 2, 'Tadasuke Makino|Kakunoshin Ohta'],
+        ['Realize Kondo Racing', 2, 'Luke Browning|Ukyo Sasahara'],
+        ['Team Impul', 1.5, 'Zak O\'Sullivan'],
+        ['TGMGP TGR-DC', 1, 'Kamui Kobayashi|Rikuto Kobayashi'],
+        ['KCMG', 0.5, 'Kenta Yamashita|Kalle Rovanperä'],
+        ['Ponos Nakajima Racing', 0, 'Ren Sato|Igor Omura Fraga'],
+        ['Team Goh', -0.5, 'Charlie Wurz', 1],
+        ['B-Max Racing', -1.5, 'Yuto Nomura'],
+        ['Cerumo INGING', -2, ''],
+        ['Hazama Ando Triple Tree Racing', -2.5, 'Juju Noda', 1],
+        ['Buzz MK Racing', -3, 'Roman Staněk', 1],
+        ['DELiGHTWORKS Racing', -3.5, '', 1],
+      ] },
     indy: { id: 'indy', name: 'IndyCar Series', short: 'IndyCar', tier: 3, lvl: 79, rounds: 17, rpr: 1, dpt: 2, pay: false, sal: [300, 3000], titleName: 'IndyCar Champion',
       rf: [{ n: 'Race', pts: PIND, grid: 'q' }], special: { 5: 'Indy 500 win' },
       names: ['St. Petersburg', 'Phoenix', 'Long Beach', 'Barber', 'Indianapolis GP', 'Indianapolis 500', 'Detroit', 'Road America', 'Mid-Ohio', 'Toronto', 'Iowa', 'Laguna Seca', 'Portland', 'Milwaukee', 'Nashville', 'Gateway', 'Markham'],
       teams: [
-        ['Chip Ganassi Racing', 4.5, 'Alex Palou|Scott Dixon'],
+        ['Chip Ganassi Racing', 4.5, 'Alex Palou|Scott Dixon|Kyffin Simpson', 3],
         ['Team Penske', 4, 'Josef Newgarden|Scott McLaughlin'],
-        ['Arrow McLaren', 3, 'Pato O\'Ward|Christian Lundgaard'],
-        ['Andretti Global', 2, 'Kyle Kirkwood'],
-        ['Meyer Shank Racing', 0.5, ''], ['Rahal Letterman Lanigan', -1, ''], ['Ed Carpenter Racing', -1.5, ''],
-        ['Prema Racing', -2, ''], ['Juncos Hollinger Racing', -2.5, ''], ['A.J. Foyt Racing', -3, ''], ['Dale Coyne Racing', -4, ''],
+        ['Arrow McLaren', 3, 'Pato O\'Ward|Christian Lundgaard|Nolan Siegel', 3],
+        ['Andretti Global', 2.5, 'Will Power|Kyle Kirkwood|Marcus Ericsson', 3],
+        ['Meyer Shank Racing', 0.5, ''],
+        ['Rahal Letterman Lanigan', -1, 'Graham Rahal|Louis Foster'],
+        ['Ed Carpenter Racing', -1.5, 'Alexander Rossi|Christian Rasmussen'],
+        ['Juncos Hollinger Racing', -2.5, 'Rinus VeeKay|Sting Ray Robb'],
+        ['A.J. Foyt Racing', -3, ''],
+        ['Dale Coyne Racing', -4, 'Romain Grosjean|Dennis Hauger'],
       ] },
     wec: { id: 'wec', name: 'WEC Hypercar', short: 'WEC', tier: 3, lvl: 78, rounds: 8, rpr: 1, dpt: 3, pay: false, sal: [200, 1400], titleName: 'WEC Hypercar Champion',
       rf: [{ n: 'Race', pts: PF1, grid: 'q' }], special: { 3: '24 Hours of Le Mans win' },
       names: ['Qatar 1812km', 'Imola 6h', 'Spa 6h', '24 Hours of Le Mans', 'São Paulo 6h', 'COTA 6h', 'Fuji 6h', 'Bahrain 8h'],
-      teams: [['Toyota Gazoo Racing', 4, ''], ['Ferrari AF Corse', 4, ''], ['Porsche Penske Motorsport', 3, ''], ['Cadillac Hertz Team Jota', 2.5, ''], ['BMW M Team WRT', 2, ''], ['Alpine Endurance Team', 0, ''], ['Peugeot TotalEnergies', -0.5, ''], ['Aston Martin THOR Team', -1, ''], ['Genesis Magma Racing', -1.5, '']] },
+      teams: [
+        ['Toyota Gazoo Racing #7', 4, 'Mike Conway|Kamui Kobayashi|Nyck de Vries'],
+        ['Toyota Gazoo Racing #8', 4, 'Sébastien Buemi|Brendon Hartley|Ryō Hirakawa'],
+        ['Ferrari AF Corse #51', 4, 'Alessandro Pier Guidi|James Calado|Antonio Giovinazzi'],
+        ['Ferrari AF Corse #50', 3.5, 'Antonio Fuoco|Miguel Molina|Nicklas Nielsen'],
+        ['BMW M Team WRT #15', 2, 'Kevin Magnussen|Raffaele Marciello|Dries Vanthoor'],
+        ['BMW M Team WRT #20', 2, 'Robin Frijns|René Rast|Sheldon van der Linde'],
+        ['Cadillac Hertz Team Jota #12', 2.5, 'Alex Lynn|Will Stevens|Norman Nato'],
+        ['Cadillac Hertz Team Jota #38', 2.5, 'Earl Bamber|Sébastien Bourdais|Jack Aitken'],
+        ['Alpine Endurance Team #35', 0, 'António Félix da Costa'],
+        ['Alpine Endurance Team #36', -0.5, 'Frédéric Makowiecki'],
+        ['Peugeot TotalEnergies #93', -0.5, 'Paul di Resta'],
+        ['Peugeot TotalEnergies #94', -1, 'Loïc Duval'],
+        ['Genesis Magma Racing #17', -1, 'André Lotterer|Luis Felipe Derani|Mathys Jaubert'],
+        ['Genesis Magma Racing #19', -1.5, 'Mathieu Jaminet|Paul-Loup Chatin|Daniel Juncadella'],
+        ['Aston Martin THOR Team #007', -1.5, 'Harry Tincknell|Tom Gamble|Ross Gunn'],
+        ['Aston Martin THOR Team #009', -2, 'Alex Riberas'],
+      ] },
     fe: { id: 'fe', name: 'Formula E', short: 'Formula E', tier: 3, lvl: 78, rounds: 16, rpr: 1, dpt: 2, pay: false, sal: [250, 1900], titleName: 'Formula E Champion',
       rf: [{ n: 'E-Prix', pts: PF1, grid: 'q' }],
       names: ['São Paulo', 'Mexico City', 'Miami', 'Jeddah', 'Madrid', 'Berlin', 'Monaco', 'Sanya', 'Shanghai', 'Tokyo', 'London', 'Portland', 'Misano', 'Jakarta', 'Seoul', 'Cape Town'],
-      teams: [['Jaguar TCS Racing', 4, 'Mitch Evans|Nick Cassidy'], ['Porsche Formula E Team', 4, 'Pascal Wehrlein'], ['Nissan Formula E Team', 2, ''], ['DS Penske', 1, ''], ['Mahindra Racing', 0, ''], ['Citroën Racing', -0.5, ''], ['Envision Racing', -1, ''], ['Andretti Formula E', -1.5, ''], ['Cupra Kiro', -2.5, ''], ['Lola Yamaha ABT', -3, '']] },
+      teams: [
+        ['Porsche Formula E Team', 4, 'Pascal Wehrlein|Nico Müller'],
+        ['Jaguar TCS Racing', 3.5, 'Mitch Evans|António Félix da Costa'],
+        ['Nissan Formula E Team', 2, 'Oliver Rowland|Norman Nato'],
+        ['Mahindra Racing', 1, 'Nyck de Vries|Edoardo Mortara'],
+        ['DS Penske', 0.5, 'Maximilian Günther|Taylor Barnard'],
+        ['Envision Racing', -0.5, 'Sébastien Buemi|Joel Eriksson'],
+        ['Citroën Racing', -1, 'Jean-Éric Vergne|Nick Cassidy'],
+        ['Andretti Formula E', -1.5, 'Jake Dennis|Felipe Drugovich'],
+        ['Cupra Kiro', -2.5, 'Pepe Martí'],
+        ['Lola Yamaha ABT', -3, 'Lucas di Grassi|Zane Maloney'],
+      ] },
   };
 
   const ACADEMIES = [
@@ -163,9 +210,9 @@
   const dyn = (id, regYears, elite) => { CATS[id].dyn = true; CATS[id].regYears = regYears; CATS[id].elite = elite; };
   dyn('f1', [2026, 2031, 2037, 2042, 2048, 2053, 2059], ['Ferrari', 'McLaren', 'Mercedes', 'Red Bull Racing']);
   dyn('indy', [2028, 2034, 2040, 2046, 2052, 2058], ['Chip Ganassi Racing', 'Team Penske', 'Arrow McLaren']);
-  dyn('wec', [2030, 2035, 2040, 2046, 2051, 2057], ['Toyota Gazoo Racing', 'Ferrari AF Corse', 'Porsche Penske Motorsport']);
+  dyn('wec', [2030, 2035, 2040, 2046, 2051, 2057], ['Toyota Gazoo Racing #7', 'Toyota Gazoo Racing #8', 'Ferrari AF Corse #51']);
   dyn('fe', [2027, 2031, 2035, 2039, 2043, 2047, 2051, 2055, 2059], ['Jaguar TCS Racing', 'Porsche Formula E Team']);
-  dyn('sf', [2029, 2035, 2041, 2047, 2053, 2059], ['TOM\'S', 'Team Mugen']);
+  dyn('sf', [2029, 2035, 2041, 2047, 2053, 2059], ['Team Mugen', 'Vantelin Team TOM\'S']);
 
   // talent tiers: share of new careers, and OVR advantage over the "on-path" level by age band
   // bands: 7-11, 12-13, 14-15, 16-18, 19-22, 23+
