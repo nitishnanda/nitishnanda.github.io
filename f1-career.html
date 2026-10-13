@@ -81,6 +81,12 @@ input,select{width:100%;background:var(--card);border:1.5px solid var(--bd);bord
 .up{color:var(--gr);font-weight:800}.dn{color:var(--rd);font-weight:800}
 @keyframes spin{to{transform:rotate(1080deg)}}.wheel{font-size:84px;text-align:center;display:block;margin:10px auto}.wheel.sp{animation:spin 1.1s cubic-bezier(.2,.7,.2,1)}
 .sc{overflow-x:auto}
+.pie{width:100%;max-width:300px;display:block;margin:6px auto 12px}
+.lg{display:grid;grid-template-columns:14px 1fr;gap:3px 10px;margin:0 0 12px;font-size:13px}
+.lg i{width:12px;height:12px;border-radius:4px;margin-top:3px}.lg b{font-size:14px}.lg span{color:var(--mu);display:block;line-height:1.35}
+.tierb{display:inline-block;border-radius:999px;padding:6px 12px;font-weight:900;font-size:14px;border:1.5px solid}
+.sel2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}.sel2 div{background:var(--card);border:1.5px solid var(--bd);border-radius:16px;padding:12px;cursor:pointer}.sel2 div.on{border-color:var(--gr);background:#0f2b1f}.sel2 b{display:block;margin-bottom:3px}.sel2 span{font-size:12px;color:var(--mu)}
+.fx{border-radius:14px;background:var(--card2);border:1px solid var(--bd);padding:12px 14px;font-size:14px;line-height:1.45;margin:0 0 14px;color:var(--mu)}.fx b{color:var(--tx)}
 </style>
 </head>
 <body>
@@ -92,7 +98,7 @@ input,select{width:100%;background:var(--card);border:1.5px solid var(--bd);bord
 const E=window.F1E, D=window.F1D, CATS=D.CATS, NATS=D.NATS;
 const KEY='gridDynasty_v1';
 let G=null;
-const ui={screen:'start',name:'',nat:'GB',arch:'allround',modal:null,sel:-1,train:null,acad:false,spin:null,wheelRes:null};
+const ui={screen:'start',name:'',nat:'GB',arch:'allround',startAge:7,modal:null,sel:-1,train:null,acad:false,spin:null,wheelRes:null,wlist:null};
 const $=document.getElementById('app');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money=k=>k>=1000?'£'+(k/1000).toFixed(k>=10000?0:1)+'M':'£'+Math.round(k)+'k';
@@ -101,7 +107,8 @@ const ord=n=>n+(n%10===1&&n!==11?'st':n%10===2&&n!==12?'nd':n%10===3&&n!==13?'rd
 const ARCH=[['allround','All-rounder','Balanced across the board'],['qualifier','Qualifier','One-lap pace, saturday hero'],['racer','Racer','Racecraft and tyre management'],['wet','Rain master','Wet-weather wizard']];
 
 function save(){try{if(G)localStorage.setItem(KEY,JSON.stringify(G));}catch(e){}}
-function load(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+function load(){try{const s=localStorage.getItem(KEY);const g=s?JSON.parse(s):null;return g&&g.v===2?g:null;}catch(e){return null;}}
+const tierBadge=t=>{const T=D.TIERS[t];return `<span class="tierb" style="color:${T.col};border-color:${T.col}55;background:${T.col}18">${T.n}</span>`;};
 function clear(){try{localStorage.removeItem(KEY);}catch(e){}}
 
 function top(){return `<div class="top"><div class="pill">⭐ ${G?Math.round(G.rep):'-'} rep</div><div class="pill u">🏁 ${esc(G?G.name:'Grid Dynasty')}</div></div>`;}
@@ -113,6 +120,7 @@ function vStart(){
   return `<h1>🏎️ Grid Dynasty</h1><p class="sub">Start in karting at 7. Climb F4, F3 and F2. Fight for a grand prix seat, then chase the world title.</p>
   <div class="lab">Driver name</div><input id="nm" placeholder="Your name" maxlength="24" value="${esc(ui.name)}">
   <div class="lab">Driving style</div><div class="arch">${ARCH.map(a=>`<div data-act="arch" data-v="${a[0]}" class="${ui.arch===a[0]?'on':''}"><b>${a[1]}</b><span>${a[2]}</span></div>`).join('')}</div>
+  <div class="lab">Start point</div><div class="sel2"><div data-act="sa" data-v="7" class="${ui.startAge===7?'on':''}"><b>Full journey</b><span>Karting at age 7 (2026). The world evolves around you.</span></div><div data-act="sa" data-v="16" class="${ui.startAge===16?'on':''}"><b>Fast track</b><span>Join British F4 at 16 and race the real 2026 grids.</span></div></div>
   <div class="lab">Nationality</div><select id="nat">${Object.keys(NATS).map(k=>`<option value="${k}" ${ui.nat===k?'selected':''}>${NATS[k].f} ${NATS[k].n}</option>`).join('')}</select>
   ${sv?`<button class="btn g" data-act="cont">Continue career</button>`:''}
   <button class="btn ${sv?'':'g'}" data-act="new">Start new career</button>
@@ -120,21 +128,21 @@ function vStart(){
 }
 function vIntro(){
   const C=CATS[G.cat], ov=E.ovrOf(G.stats);
-  return `<button class="btn back" data-act="home">‹ Menu</button><h1>Your story begins</h1><p class="sub">A 7-year-old ${esc(NATS[G.nat].n)} karter with everything to prove.</p>
-  <div class="card"><div class="pro"><div class="ovr">${ov}<small>OVR</small></div><div><h3>${esc(G.name)}</h3><div class="small">${NATS[G.nat].f} age ${G.age} · ${esc(G.team)}</div><span class="tag">${E.potLabel(G.pot)}</span></div></div>${bars(G.stats)}</div>
+  return `<button class="btn back" data-act="home">‹ Menu</button><h1>Your story begins</h1><p class="sub">${G.age===7?'A 7-year-old '+esc(NATS[G.nat].n)+' karter with everything to prove.':'A 16-year-old '+esc(NATS[G.nat].n)+' F4 rookie in '+G.year+'.'}</p>
+  <div class="card"><div class="pro"><div class="ovr">${ov}<small>OVR</small></div><div><h3>${esc(G.name)}</h3><div class="small">${NATS[G.nat].f} age ${G.age} · ${esc(G.team)}</div>${tierBadge(G.tier)}</div></div><p class="small" style="margin:0 0 8px">${esc(D.TIERS[G.tier].blurb)}</p>${bars(G.stats)}<p class="small cen" style="margin:10px 0 0">Talent tier is fixed for the whole career. Re-roll only reshuffles your attributes.</p></div>
   <div class="card cen"><div class="small">You start out in</div><h2 style="margin:6px 0">${esc(C.name)}</h2><div class="small">${esc(G.team)} · seat funded by family · ${money(G.deal.cost)}/yr</div>
-  <div class="row2" style="margin-top:14px"><button class="btn s" data-act="rs">🎲 Re-roll stats</button><button class="btn s" data-act="rc">🔄 Re-roll club</button></div></div>
+  <div class="row2" style="margin-top:14px"><button class="btn s" data-act="rs">🎲 Re-roll attributes</button><button class="btn s" data-act="rc">🔄 Re-roll club</button></div></div>
   <div class="fixed"><div><button class="btn g" data-act="begin">Begin Season 1</button></div></div>`;
 }
 function vSeason(){
   const S=G.S,C=CATS[S.cat],P=E.player(G),tb=E.standings(G),pos=tb.indexOf(P)+1;
   const logs=S.log.slice().reverse().map(l=>{
     const rs=l.out?`<span class="badge x">OUT</span>`:l.races.map(r=>`<span class="badge ${r.dnf?'x':r.pos===1?'w':r.pos<=3?'p':''}">${r.dnf?'DNF':'P'+r.pos}</span>`).join(' ');
-    const d=l.out?'Missed through injury':`Q P${l.qpos}${l.pole?' (pole)':''} · ${l.races.map(r=>r.n+' '+(r.dnf?'DNF':'+'+r.pts)).join(' · ')}${l.wet?' · 🌧️ wet':''}`;
+    const d=l.out?'Missed through injury':`<b style="color:var(--tx)">Q P${l.qpos}</b>${l.pole?' 🏁 pole':''} · ${l.races.map(r=>`${esc(r.n)}: P${r.grid} → ${r.dnf?'DNF':'P'+r.pos}${r.dnf?'':' (+'+r.pts+')'}`).join(' · ')}${l.wet?' · 🌧️':''}`;
     return `<div class="log"><span class="r">R${l.round}</span><span class="t">${esc(l.name)}</span><span style="display:flex;gap:6px">${rs}</span><span class="d">${d}</span></div>`;}).join('');
   return `<button class="btn back" data-act="home">‹ Menu</button>
-  <div class="tiles"><div class="tile"><span>Season</span><b>${G.season}</b><i>age ${G.age}</i></div><div class="tile"><span>Round</span><b>${S.round}/${C.rounds}</b><i>${C.rpr} race${C.rpr>1?'s':''}/rd</i></div><div class="tile"><span>Wins</span><b>${P.w}</b><i>${P.p} podiums</i></div><div class="tile"><span>Points</span><b>${P.pts}</b><i>${P.pole} poles</i></div></div>
-  <div class="chips"><span class="chip g"><b>${esc(G.team)}</b></span><span class="chip">${esc(C.short)}</span><span class="chip">Pos <b>${S.round?pos:'-'}</b></span><span class="chip">Contract <b>${G.contract}yr</b></span>${G.academy?`<span class="chip">🎓 <b>${esc(G.academy.n.split(' ')[0]+' '+G.academy.n.split(' ')[1])}</b></span>`:''}</div>
+  <div class="tiles"><div class="tile"><span>${G.year}</span><b>${G.season}</b><i>age ${G.age}</i></div><div class="tile"><span>Round</span><b>${S.round}/${C.rounds}</b><i>${C.rpr} race${C.rpr>1?'s':''}/rd</i></div><div class="tile"><span>Wins</span><b>${P.w}</b><i>${P.p} podiums</i></div><div class="tile"><span>Points</span><b>${P.pts}</b><i>${P.pole} poles</i></div></div>
+  <div class="chips"><span class="chip g"><b>${esc(G.team)}</b></span><span class="chip">${esc(C.short)}</span><span class="chip">Stage <b>${Math.min(3,S.spins+1)}/3</b></span><span class="chip">Pos <b>${S.round?pos:'-'}</b></span><span class="chip">Contract <b>${G.contract}yr</b></span>${G.academy?`<span class="chip">🎓 <b>${esc(G.academy.n.split(' ')[0]+' '+G.academy.n.split(' ')[1])}</b></span>`:''}</div>
   <div class="row2"><button class="btn" data-act="tbl">📊 Standings</button><button class="btn" data-act="drv">🧬 My driver</button></div>
   ${logs||'<p class="sub">Season ready. Hit race next round.</p>'}
   <div class="fixed"><div>${S.over?`<button class="btn g" data-act="wrap">Season wrap-up</button>`:`<button class="btn g" data-act="next">Race next round</button><button class="btn" data-act="sim">Sim to season end</button>`}</div></div>${modal()}`;
@@ -179,18 +187,24 @@ function vRetired(){
   const T=G.tot,R=G.retire,tr=Object.entries(T.trophies).sort((a,b)=>b[1]-a[1]);
   const cost=G.history.reduce((a,h)=>a+(h.cost||0),0);
   const b=R.best;
-  return `${top()}<h1>${esc(G.name)} retires</h1><p class="sub">${R.age} years old · ${NATS[G.nat].f} ${esc(NATS[G.nat].n)} driver · ${R.seasons} seasons · ${R.label}</p>
+  return `${top()}<h1>${esc(G.name)} retires</h1><p class="sub">${R.age} years old · ${NATS[G.nat].f} ${esc(NATS[G.nat].n)} driver · ${R.seasons} seasons · ${R.label}</p><div class="cen" style="margin-bottom:12px">${tierBadge(G.tier)}</div>${R.cause?`<div class="note">${R.cause==='fatal'?'A tragic accident ended the career. The paddock mourns.':'A career-ending injury cut it short.'}</div>`:''}
   <div class="card"><div class="big">${T.wins}</div><div class="cen lab" style="font-size:15px;color:var(--tx)">Career wins</div>
   <div class="cen" style="font-size:42px;font-weight:900;color:var(--gd);margin:12px 0 2px">💰 ${money(T.earn)}</div><div class="cen lab">Career earnings</div>
   <div class="tro">${tr.map(([n,c])=>`<span>🏆 ${c}× ${esc(n)}</span>`).join('')||'<span>No major trophies</span>'}</div>
   <div class="box3"><div>Races<b>${T.races}</b></div><div>Podiums<b>${T.podiums}</b></div><div>Poles<b>${T.poles}</b></div></div>
   <div class="box3"><div>Titles<b>${Object.values(T.titles).reduce((a,x)=>a+x,0)}</b></div><div>Peak OVR<b>${T.peak}</b></div><div>Seat costs<b style="font-size:18px">${money(cost)}</b></div></div>
-  <p class="cen">Teams: <b>${R.teams.map(esc).join(' · ')}</b></p>
+  ${G.standIns.length?`<p class="cen">F1 stand-ins: <b>${G.standIns.reduce((a,x)=>a+x.n,0)} starts, ${G.standIns.reduce((a,x)=>a+x.pts,0)} pts</b></p>`:''}<p class="cen">Teams: <b>${R.teams.map(esc).join(' · ')}</b></p>
   ${b?`<p class="cen">Best season: <b>${b.wins}W ${b.podiums}P</b> in ${esc(b.short)} for ${esc(b.team)}${b.champ?' 🏆':''}</p>`:''}</div>
-  <div class="card"><div class="lab">Career progression</div><div class="sc"><table><tr><th>Age</th><th class="l">Series · Team</th><th>R</th><th>W</th><th>Pos</th></tr>${G.history.map(h=>`<tr><td>${h.age}${h.champ?' 🏆':''}</td><td class="l">${esc(h.short)}<br><small class="small">${esc(h.team)}${h.trophies.length?' · '+esc(h.trophies.join(', ')):''}</small></td><td>${h.races}</td><td>${h.wins}</td><td>${h.pos}</td></tr>`).join('')}</table></div></div>
+  <div class="card"><div class="lab">Career progression</div><div class="sc"><table><tr><th>Year</th><th class="l">Series · Team</th><th>R</th><th>W</th><th>Pos</th></tr>${G.history.map(h=>`<tr><td>${h.year}${h.champ?' 🏆':''}<br><small class="small">age ${h.age}</small></td><td class="l">${esc(h.short)}<br><small class="small">${esc(h.team)}${h.trophies.length?' · '+esc(h.trophies.join(', ')):''}</small></td><td>${h.races}</td><td>${h.wins}</td><td>${h.pos}</td></tr>`).join('')}</table></div></div>
   <button class="btn g" data-act="again">Start a new career</button>`;
 }
 
+function pie(L){
+  const tot=L.reduce((a,o)=>a+o.w,0);let a0=0;const R=100,cx=110,cy=110;
+  const pt=d=>{const r=(d-90)*Math.PI/180;return [cx+R*Math.cos(r),cy+R*Math.sin(r)];};
+  const sl=L.map(o=>{const a1=a0+o.w/tot*360;const [x0,y0]=pt(a0),[x1,y1]=pt(a1);o._mid=(a0+a1)/2;const big=a1-a0>180?1:0;const d=`M${cx},${cy} L${x0.toFixed(2)},${y0.toFixed(2)} A${R},${R} 0 ${big} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z`;a0=a1;return `<path d="${d}" fill="${o.col}" stroke="#0b0c14" stroke-width="1.5"/>`;}).join('');
+  return `<svg viewBox="0 -14 220 234" class="pie"><g id="wg" style="transform-origin:110px 110px;transition:transform 1.6s cubic-bezier(.15,.7,.15,1)">${sl}</g><circle cx="110" cy="110" r="13" fill="#0b0c14" stroke="#2a2c4a"/><path d="M110,12 L99,-10 L121,-10 Z" fill="#fff"/></svg>`;
+}
 function modal(){
   const m=ui.modal; if(!m)return '';
   if(m==='tbl'){
@@ -200,12 +214,16 @@ function modal(){
   }
   if(m==='drv'){
     const C=CATS[G.cat];
-    return `<div class="modalbg" data-act="close"><div class="modal" data-stop="1"><div class="pro"><div class="ovr">${E.ovrOf(G.stats)}<small>OVR</small></div><div><h3>${esc(G.name)}</h3><div class="small">age ${G.age} · ${esc(G.team)} · ${C.pay?money(G.deal.cost)+' seat':money(G.deal.sal)+'/yr'}</div><span class="tag">${E.potLabel(G.pot)}</span></div></div>${bars(G.stats)}<button class="btn g" style="margin-top:14px" data-act="close">Close</button></div></div>`;
+    return `<div class="modalbg" data-act="close"><div class="modal" data-stop="1"><div class="pro"><div class="ovr">${E.ovrOf(G.stats)}<small>OVR</small></div><div><h3>${esc(G.name)}</h3><div class="small">age ${G.age} · ${esc(G.team)} · ${C.pay?money(G.deal.cost)+' seat':money(G.deal.sal)+'/yr'}</div>${tierBadge(G.tier)}</div></div>${bars(G.stats)}<button class="btn g" style="margin-top:14px" data-act="close">Close</button></div></div>`;
   }
   if(m==='wheel'){
-    const r=ui.wheelRes;
-    if(r) return `<div class="modalbg"><div class="modal"><span class="wheel">${r.icon}</span><h2>${esc(r.title)}</h2><p class="sub">${esc(r.desc)}</p><button class="btn g" data-act="wdone">Continue</button></div></div>`;
-    return `<div class="modalbg"><div class="modal"><h2>${ui.spin?'':'❄️ '}Mid-season break</h2><span class="wheel ${ui.spin?'sp':''}">🎡</span><p class="sub">Halfway through the season. Spin for a random twist to your career, or play on.</p><button class="btn g" data-act="spin" ${ui.spin?'disabled':''}>🎡 Spin the wheel</button><button class="btn" data-act="skipw" ${ui.spin?'disabled':''}>Play on</button></div></div>`;
+    const r=ui.wheelRes, L=ui.wlist||[];
+    const stageName=G.S.spins===0?'Early-season break':'Late-season break';
+    if(r) return `<div class="modalbg"><div class="modal"><span class="wheel">${r.icon}</span><h2>${esc(r.title)}</h2><div class="fx"><b>What it does:</b> ${esc(r.fx)}</div><p class="sub" style="color:var(--tx)">${esc(r.desc)}</p><button class="btn g" data-act="wdone">Continue</button></div></div>`;
+    const tot=L.reduce((a,o)=>a+o.w,0);
+    return `<div class="modalbg"><div class="modal"><h2>🎡 ${stageName}</h2><p class="sub" style="margin-bottom:6px">Stage ${G.S.spins+1} of 3 done. Spin for a random twist, or play on.</p>${pie(L)}
+    <button class="btn g" data-act="spin" ${ui.spin?'disabled':''}>Spin the wheel</button><button class="btn" data-act="skipw" ${ui.spin?'disabled':''}>Play on</button>
+    <div class="lab" style="margin-top:6px">What each slice does</div><div class="lg">${L.map(o=>`<i style="background:${o.col}"></i><div><b>${o.ic} ${esc(o.t)} · ${(100*o.w/tot).toFixed(o.w<1?1:0)}%</b><span>${esc(o.fx)}</span></div>`).join('')}</div></div></div>`;
   }
   return '';
 }
@@ -224,7 +242,7 @@ function render(){
 }
 function rerender(){const y=window.scrollY;render();window.scrollTo(0,y);}
 
-function afterRound(){ if(G.S.wheelDue){ui.modal='wheel';ui.spin=null;ui.wheelRes=null;} }
+function afterRound(){ if(G.S.wheelDue){ui.modal='wheel';ui.spin=null;ui.wheelRes=null;ui.wlist=E.wheelList(G);} }
 document.addEventListener('input',e=>{if(e.target.id==='nm')ui.name=e.target.value;});
 document.addEventListener('change',e=>{if(e.target.id==='nat')ui.nat=e.target.value;});
 document.addEventListener('click',e=>{
@@ -233,7 +251,8 @@ document.addEventListener('click',e=>{
   const a=el.dataset.act;
   switch(a){
     case 'arch': ui.arch=el.dataset.v; rerender(); return;
-    case 'new': G=E.newGame({name:ui.name.trim()||'Driver',nat:ui.nat,arch:ui.arch}); ui.screen='game'; ui.modal=null; save(); render(); return;
+    case 'sa': ui.startAge=+el.dataset.v; rerender(); return;
+    case 'new': G=E.newGame({name:ui.name.trim()||'Driver',nat:ui.nat,arch:ui.arch,startAge:ui.startAge}); ui.screen='game'; ui.modal=null; save(); render(); return;
     case 'cont': G=load(); if(G){ui.screen='game';ui.modal=null; if(G.phase==='season')afterRound(); render();} return;
     case 'home': ui.screen='start'; ui.modal=null; render(); return;
     case 'rs': E.rerollStats(G); save(); rerender(); return;
@@ -243,9 +262,13 @@ document.addEventListener('click',e=>{
     case 'close': ui.modal=null; rerender(); return;
     case 'next': E.playRound(G); afterRound(); save(); render(); return;
     case 'sim': E.simToEnd(G); afterRound(); save(); render(); return;
-    case 'spin': ui.spin=true; rerender(); setTimeout(()=>{ui.wheelRes=E.spinWheel(G);ui.spin=null;save();rerender();},1150); return;
+    case 'spin': {
+      const res=E.spinWheel(G); ui.spin=true; save(); rerender();
+      const L=ui.wlist, mid=L[res.idx]._mid;
+      setTimeout(()=>{const g=document.getElementById('wg'); if(g) g.style.transform='rotate('+(360*5-mid)+'deg)';},40);
+      setTimeout(()=>{ui.wheelRes=res;ui.spin=null;rerender();},1800); return; }
     case 'skipw': E.skipWheel(G); ui.modal=null; save(); rerender(); return;
-    case 'wdone': ui.modal=null; ui.wheelRes=null; rerender(); return;
+    case 'wdone': ui.modal=null; ui.wheelRes=null; if(G.pendingEnd){E.endCareerNow(G);save();render();return;} rerender(); return;
     case 'wrap': E.finishSeason(G); save(); render(); return;
     case 'plan': E.buildMarket(G); ui.sel=-1; ui.train=null; ui.acad=false; save(); render(); return;
     case 'sel': ui.sel=el.dataset.i==='ret'?'ret':+el.dataset.i; rerender(); return;

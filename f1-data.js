@@ -87,18 +87,18 @@
       special: { 7: 'Monaco GP win' },
       teams: [
         ['Mercedes', 7, 'George Russell|Kimi Antonelli'],
-        ['McLaren', 6, 'Lando Norris|Oscar Piastri'],
+        ['McLaren', 5, 'Lando Norris|Oscar Piastri'],
         ['Ferrari', 5.5, 'Charles Leclerc|Lewis Hamilton'],
-        ['Red Bull Racing', 4.5, 'Max Verstappen|Isack Hadjar'],
-        ['Williams', 0.5, 'Alex Albon|Carlos Sainz'],
+        ['Red Bull Racing', 3.5, 'Max Verstappen|Isack Hadjar'],
+        ['Williams', 1, 'Alex Albon|Carlos Sainz'],
         ['Racing Bulls', 0, 'Liam Lawson|Arvid Lindblad'],
-        ['Aston Martin', -1, 'Fernando Alonso|Lance Stroll'],
-        ['Alpine', -1.5, 'Pierre Gasly|Franco Colapinto'],
+        ['Aston Martin', 0, 'Fernando Alonso|Lance Stroll'],
+        ['Alpine', 1.5, 'Pierre Gasly|Franco Colapinto'],
         ['Haas', -2, 'Esteban Ocon|Oliver Bearman'],
         ['Audi', -3, 'Nico Hülkenberg|Gabriel Bortoleto'],
         ['Cadillac', -5, 'Sergio Pérez|Valtteri Bottas'],
       ],
-      boost: { 'Max Verstappen': 9, 'Lando Norris': 7, 'Oscar Piastri': 6, 'George Russell': 6, 'Charles Leclerc': 7, 'Lewis Hamilton': 5, 'Fernando Alonso': 5, 'Kimi Antonelli': 3, 'Carlos Sainz': 3, 'Alex Albon': 2, 'Pierre Gasly': 1 } },
+    },
 
     /* lateral categories (real team names; drivers partly real, rest generated) */
     frec: { id: 'frec', name: 'Formula Regional Europe', short: 'FRECA', tier: 1, lvl: 70, rounds: 10, rpr: 2, dpt: 3, pay: true, cost: [350, 720], titleName: 'FRECA Champion',
@@ -159,6 +159,37 @@
   const STATS = ['PAC', 'QUA', 'RAC', 'CON', 'WET', 'TYR', 'FIT', 'MEN'];
   const STAT_NAMES = { PAC: 'Pace', QUA: 'Qualifying', RAC: 'Racecraft', CON: 'Consistency', WET: 'Wet weather', TYR: 'Tyre mgmt', FIT: 'Fitness', MEN: 'Mentality' };
 
-  const D = { NATS, CATS, ACADEMIES, PROMO, LATERAL, STUCK_CATS, TIER3_SIDE, STATS, STAT_NAMES };
+  // dynamic (cycling) series vs spec series
+  const dyn = (id, regYears, elite) => { CATS[id].dyn = true; CATS[id].regYears = regYears; CATS[id].elite = elite; };
+  dyn('f1', [2026, 2031, 2037, 2042, 2048, 2053, 2059], ['Ferrari', 'McLaren', 'Mercedes', 'Red Bull Racing']);
+  dyn('indy', [2028, 2034, 2040, 2046, 2052, 2058], ['Chip Ganassi Racing', 'Team Penske', 'Arrow McLaren']);
+  dyn('wec', [2030, 2035, 2040, 2046, 2051, 2057], ['Toyota Gazoo Racing', 'Ferrari AF Corse', 'Porsche Penske Motorsport']);
+  dyn('fe', [2027, 2031, 2035, 2039, 2043, 2047, 2051, 2055, 2059], ['Jaguar TCS Racing', 'Porsche Formula E Team']);
+  dyn('sf', [2029, 2035, 2041, 2047, 2053, 2059], ['TOM\'S', 'Team Mugen']);
+
+  // talent tiers: share of new careers, and OVR advantage over the "on-path" level by age band
+  // bands: 7-11, 12-13, 14-15, 16-18, 19-22, 23+
+  const TIERS = [
+    { id: 'prospect', n: 'Prospect', p: 0.51, col: '#8b8fb0', adv: [2.5, 2.5, 2.5, -3.5, -6.5, -7], blurb: 'Below-average F1 ceiling. Podiums in karting, then a midfield grind.' },
+    { id: 'talented', n: 'Talented', p: 0.30, col: '#4da3ff', adv: [4, 4.5, 4.5, 0.5, -0.5, 0.5], blurb: 'A solid F1 driver. Results depend on the car.' },
+    { id: 'late', n: 'Late bloomer', p: 0.09, col: '#ff8a5c', adv: [-3, -1, 8, 5, 2.5, 2], blurb: 'Quiet early on, then dominant in the last karting years and the junior formulas.' },
+    { id: 'wonder', n: 'Wonderkid', p: 0.08, col: '#ffd23f', adv: [6.5, 7, 7.5, 5, 4.5, 4.5], blurb: 'Wins early, wins often. A future title contender.' },
+    { id: 'gen', n: 'Generational', p: 0.02, col: '#ff6fae', adv: [10, 11, 11, 9, 9, 9], blurb: 'Once in a generation. Dominates everything.' },
+  ];
+  // chance of a step-up by finishing bucket [<=4, 5-7, 8-10, 11-15, 16+], per tier [prospect, talented, late, wonder, gen]
+  const PROMO_P = [[1, 1, 1, 1, 1], [0.50, 0.45, 0.45, 0.45, 0.38], [0.22, 0.20, 0.20, 0.20, 0.14], [0.06, 0.05, 0.05, 0.05, 0.03], [0.01, 0.01, 0.01, 0.01, 0]];
+
+  // F1 driver pool: [birth year, skill]
+  const F1P = {
+    'Max Verstappen': [1997, 93], 'Lando Norris': [1999, 90], 'Oscar Piastri': [2001, 89], 'George Russell': [1998, 89], 'Charles Leclerc': [1997, 90],
+    'Lewis Hamilton': [1985, 88], 'Kimi Antonelli': [2006, 85], 'Isack Hadjar': [2004, 83], 'Alex Albon': [1996, 84], 'Carlos Sainz': [1994, 85],
+    'Liam Lawson': [2002, 82], 'Arvid Lindblad': [2007, 80], 'Fernando Alonso': [1981, 86], 'Lance Stroll': [1998, 80], 'Pierre Gasly': [1996, 84],
+    'Franco Colapinto': [2003, 80], 'Esteban Ocon': [1996, 83], 'Oliver Bearman': [2005, 83], 'Nico Hülkenberg': [1987, 83], 'Gabriel Bortoleto': [2004, 82],
+    'Sergio Pérez': [1990, 80], 'Valtteri Bottas': [1989, 80],
+  };
+  const ROOKIES = ['Rafael Câmara', 'Dino Beganovic', 'Nikola Tsolov', 'Sebastián Montoya', 'Kush Maini', 'Gabriele Minì', 'Ugo Ugochukwu', 'Martinius Stenshorne', 'Noah Strømsted', 'Freddie Slater', 'Théophile Naël', 'Tuukka Taponen', 'Ritomo Miyata', 'Oliver Goethe', 'Laurens van Hoepen', 'Mari Boya'];
+  const RETIRE_2028 = ['Lewis Hamilton', 'Fernando Alonso'];
+
+  const D = { NATS, CATS, ACADEMIES, PROMO, LATERAL, STUCK_CATS, TIER3_SIDE, STATS, STAT_NAMES, TIERS, PROMO_P, F1P, ROOKIES, RETIRE_2028 };
   if (typeof module !== 'undefined' && module.exports) module.exports = D; else root.F1D = D;
 })(typeof window !== 'undefined' ? window : globalThis);
