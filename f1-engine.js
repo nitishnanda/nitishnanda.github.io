@@ -200,12 +200,12 @@
     C.teams.forEach(t => {
       const name = t[0], car = G.tr[C.id][name];
       if (C.id === 'f1') {
-        G.f1.teams[name].forEach(d => { const isP = !!d.player; drivers.push({ id: drivers.length, name: isP ? G.name : d.name, team: name, car, skill: isP ? 0 : d.ski + gauss() * 1.3, isPlayer: isP, pts: 0, w: 0, p: 0, pole: 0, races: 0, dnf: 0 }); });
+        G.f1.teams[name].forEach(d => { const isP = !!d.player; drivers.push({ id: drivers.length, name: isP ? G.name : d.name, team: name, car, skill: isP ? 0 : d.ski + gauss() * 1.3, isPlayer: isP, pts: 0, w: 0, p: 0, pole: 0, races: 0, dnf: 0, tb: rnd() }); });
         return;
       }
       roster(G, C.id, name).forEach((nm, i) => {
         const isP = name === G.team && i === seats(C.id, name) - 1;
-        drivers.push({ id: drivers.length, name: isP ? G.name : nm, team: name, car, skill: C.lvl + 0.4 * (car - C.lvl) + gauss() * 3.5, isPlayer: isP, pts: 0, w: 0, p: 0, pole: 0, races: 0, dnf: 0 });
+        drivers.push({ id: drivers.length, name: isP ? G.name : nm, team: name, car, skill: C.lvl + 0.4 * (car - C.lvl) + gauss() * 3.5, isPlayer: isP, pts: 0, w: 0, p: 0, pole: 0, races: 0, dnf: 0, tb: rnd() });
       });
     });
     const form = gauss() * 1.3;
@@ -213,7 +213,7 @@
     G.phase = 'season'; G.market = null; G.pendingEnd = null;
   }
   const player = G => G.S.drivers.find(d => d.isPlayer);
-  const standings = G => G.S.drivers.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || b.p - a.p || a.id - b.id);
+  const standings = G => G.S.drivers.slice().sort((a, b) => b.pts - a.pts || b.w - a.w || b.p - a.p || a.tb - b.tb);
 
   /* ---------- race sim ---------- */
   function playRound(G) {
@@ -225,16 +225,23 @@
     const Dq = 0.35 * st.PAC + 0.45 * st.QUA + 0.1 * st.MEN + 0.1 * st.CON;
     const Dr = 0.28 * st.PAC + 0.28 * st.RAC + 0.14 * st.CON + 0.14 * st.TYR + 0.08 * st.MEN + 0.08 * st.FIT;
     const wetAdj = wet ? (st.WET - 60) * 0.3 : 0;
-    const active = S.drivers.filter(d => !(d.isPlayer && out));
-    const carOf = d => d.car + (d.isPlayer ? S.carMod : 0);
     const bonus = S.boost + tmp;
+    const active = S.drivers.filter(d => !(d.isPlayer && out));
+    // units: one per driver, or one per car in crew series (WEC / GT): crew-mates share the result
+    const units = [];
+    if (C.crew) { const m = {}; active.forEach(d => { (m[d.team] = m[d.team] || { members: [], team: d.team, car: d.car }).members.push(d); }); Object.values(m).forEach(u => units.push(u)); }
+    else active.forEach(d => units.push({ members: [d], team: d.team, car: d.car }));
+    units.forEach(u => { u.hasP = u.members.some(d => d.isPlayer); });
+    const uSkill = (u, pv) => u.members.reduce((a, d) => a + (d.isPlayer ? pv + bonus + wetAdj : d.skill), 0) / u.members.length;
+    const uCar = u => u.car + (u.hasP ? S.carMod : 0);
+    const uP = units.find(u => u.hasP);
 
-    active.forEach(d => { const sk = d.isPlayer ? Dq + bonus + wetAdj : d.skill; d.q = 0.55 * sk + 0.45 * carOf(d) + gauss() * (wet ? 3.6 : 2.2); });
-    const qOrder = active.slice().sort((a, b) => b.q - a.q);
-    const qpos = out ? null : qOrder.indexOf(P) + 1;
-    if (qOrder.length) qOrder[0].pole++;
+    units.forEach(u => { u.q = 0.55 * uSkill(u, Dq) + 0.45 * uCar(u) + gauss() * (wet ? 3.6 : 2.2); });
+    const qOrder = units.slice().sort((a, b) => b.q - a.q);
+    const qpos = out ? null : qOrder.indexOf(uP) + 1;
+    if (qOrder.length) qOrder[0].members.forEach(d => d.pole++);
 
-    const entry = { round: ri + 1, name: C.names[ri] || ('Round ' + (ri + 1)), wet, qpos, races: [], pole: !out && qOrder[0] === P, out, field: active.length };
+    const entry = { round: ri + 1, name: C.names[ri] || ('Round ' + (ri + 1)), wet, qpos, races: [], pole: !out && qOrder[0] === uP, out, field: units.length };
     let prev = qOrder;
     C.rf.forEach(rf => {
       let grid;
@@ -242,20 +249,19 @@
       else if (rf.grid === 'prev') grid = prev.slice();
       else { const n = +rf.grid.replace('rev', ''); grid = qOrder.slice(); grid = grid.slice(0, n).reverse().concat(grid.slice(n)); }
       const n = grid.length;
-      grid.forEach((d, gi) => {
-        d.grid = gi + 1;
-        const sk = d.isPlayer ? Dr + bonus + wetAdj : d.skill;
-        const sig = d.isPlayer ? clamp(5.6 - st.CON / 38, 3, 5) : 4.2;
-        d.s = 0.55 * sk + 0.45 * carOf(d) + (n / 2 - gi) * 0.16 + gauss() * (sig + (wet ? 1.5 : 0));
-        const pd = d.isPlayer ? clamp(0.075 - (st.CON - 60) * 0.0009, 0.02, 0.1) : 0.06;
-        d.crash = rnd() < pd;
+      grid.forEach((u, gi) => {
+        u.grid = gi + 1;
+        const sig = u.hasP ? clamp(5.6 - st.CON / 38, 3, 5) : 4.2;
+        u.s = 0.55 * uSkill(u, Dr) + 0.45 * uCar(u) + (n / 2 - gi) * 0.16 + gauss() * (sig + (wet ? 1.5 : 0));
+        const pd = u.hasP ? clamp(0.075 - (st.CON - 60) * 0.0009, 0.02, 0.1) : 0.06;
+        u.crash = rnd() < pd;
       });
-      const res = grid.filter(d => !d.crash).sort((a, b) => b.s - a.s).concat(grid.filter(d => d.crash));
-      res.forEach((d, i) => { d.races++; if (d.crash) { d.dnf++; return; } d.pts += rf.pts[i] || 0; if (i === 0) d.w++; if (i < 3) d.p++; });
+      const res = grid.filter(u => !u.crash).sort((a, b) => b.s - a.s).concat(grid.filter(u => u.crash));
+      res.forEach((u, i) => u.members.forEach(d => { d.races++; if (u.crash) { d.dnf++; return; } d.pts += rf.pts[i] || 0; if (i === 0) d.w++; if (i < 3) d.p++; }));
       if (!out) {
-        const pos = res.indexOf(P) + 1;
-        entry.races.push({ n: rf.n, grid: P.grid, pos, dnf: P.crash, pts: P.crash ? 0 : (rf.pts[pos - 1] || 0) });
-        if (pos === 1 && !P.crash) { if (C.special && C.special[ri]) S.trophies.push(C.special[ri]); if (C.kartWC && ri === C.rounds - 1) S.wcWin = true; }
+        const pos = res.indexOf(uP) + 1;
+        entry.races.push({ n: rf.n, grid: uP.grid, pos, dnf: uP.crash, pts: uP.crash ? 0 : (rf.pts[pos - 1] || 0) });
+        if (pos === 1 && !uP.crash) { if (C.special && C.special[ri]) S.trophies.push(C.special[ri]); if (C.kartWC && ri === C.rounds - 1) S.wcWin = true; }
       }
       prev = res;
     });
@@ -335,7 +341,9 @@
   const kartRepW = age => age >= 14 ? 2.2 : 1.4;
   function finishSeason(G, partial) {
     const S = G.S, C = CATS[S.cat], P = player(G), tbl = standings(G);
-    const pos = tbl.indexOf(P) + 1, N = tbl.length, q = N > 1 ? 1 - (pos - 1) / (N - 1) : 1;
+    let pos = tbl.indexOf(P) + 1, N = tbl.length;
+    if (C.crew) { const ts = []; tbl.forEach(d => { if (!ts.includes(d.team)) ts.push(d.team); }); pos = ts.indexOf(P.team) + 1; N = ts.length; }
+    const q = N > 1 ? 1 - (pos - 1) / (N - 1) : 1;
     const champ = pos === 1 && !partial, ovr = ovrOf(G.stats);
     const tro = [];
     if (!partial) {
